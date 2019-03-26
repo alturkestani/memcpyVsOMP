@@ -1,19 +1,17 @@
-# memcpyVsOMP
+# Memcpy Throughput (GiB/s) vs. Parallel Copy Throughput (GiB/s) 
 Studying the difference between memcpy and parallel copy using OMP
 
-
+## Compile
 Use the attached makefile to compile. 
 
+## Run
 To run on a system with a slurm dispatcher use:
 
 export KMP_AFFINITY=scatter,1,0,granularity=fine
 export OMP_NUM_THREADS=32   // or whatever your number of physical cores are 
-
 srun --hint=nomultithread --cpus-per-task=32 -n 1  ./benchmark
 
-
-#######
-Output example
+## Output in CSV
 
 OMP Threads 32
 Array size (GiB), Memcpy throughput (GiB/s), OMP throughput (GiB/s)
