@@ -28,10 +28,12 @@ int main ()
     double start, end;
     double * memcpyThroghputs;
     double * ompThroghputs;
+    double * elapsedTimeMemcpy;
+    double * elapsedTimeOMP;
     double * arraySizesInGib;
-    int numOfTests =1;
+    int numOfTests =0;
     int testNum = 0;
-    int64_t dummy;
+    double dummy;
     
     for (int64_t i = 4; i <= testingUpTo * _1_gib; i*=2)
     {
@@ -42,6 +44,8 @@ int main ()
     memcpyThroghputs = (double * ) malloc(sizeof(double) * numOfTests);
     ompThroghputs = (double * ) malloc(sizeof(double) * numOfTests);
     arraySizesInGib = (double * ) malloc(sizeof(double) * numOfTests);
+    elapsedTimeMemcpy = (double * ) malloc(sizeof(double) * numOfTests);
+    elapsedTimeOMP = (double * ) malloc(sizeof(double) * numOfTests);
     
     
     // testting the throughput difference using different array sizes.
@@ -58,7 +62,7 @@ int main ()
         #pragma omp parallel for 
         for (int64_t j = 0; j < i/sizeof(float) ; j++)
         {
-            src[j] = 1.0;
+            src[j] = 3.14*j/(float)i; // some random number 
         }
         // first touch
         #pragma omp parallel for 
@@ -71,11 +75,21 @@ int main ()
         // memcpy test
         start=omp_get_wtime();
         memcpy(dest, src, i);
+        dummy=dest[i/sizeof(float)-1];
         end=omp_get_wtime();
         
-        memcpyThroghputs[testNum] = arraySizesInGib[testNum]/(end-start);
+        if (end-start > 0.000000001)
+        {
+            memcpyThroghputs[testNum] = 2.0*arraySizesInGib[testNum]/(end-start);
+        }
+        else
+        {
+            memcpyThroghputs[testNum] = 0.0f;
+        }
+
+        elapsedTimeMemcpy[testNum] = (end-start);
         
-        dummy=0;
+        
         // resetting dest array
         for (int64_t j = 0; j < i/sizeof(float) ; j++)
         {
@@ -83,7 +97,7 @@ int main ()
             dest[j] = 0.0;
         }
         
-        fprintf(stderr,"IGNORE: this output is here to prevent the compiler from deleting the copy operation. %ld\n", dummy); 
+        fprintf(stderr,"IGNORE: this output is here to prevent the compiler from deleting the copy operation. %f Test %d out of %d\n", dummy, testNum+1, numOfTests); 
         
         
         // omp test
@@ -93,11 +107,20 @@ int main ()
         {
             dest[j] = src[j];               
         }
+        dummy=dest[i/sizeof(float)-1];
         end=omp_get_wtime();
         
-        ompThroghputs[testNum] = arraySizesInGib[testNum]/(end-start);
+        if (end-start > 0.000000001)
+        {
+            ompThroghputs[testNum] = 2.0*arraySizesInGib[testNum]/(end-start);
+        }
+        else
+        {
+            ompThroghputs[testNum] = 0.0f;
+        }
         
-        dummy=0;
+        elapsedTimeOMP[testNum] = (end-start);
+        
         // resetting dest array
         for (int64_t j = 0; j < i/sizeof(float) ; j++)
         {
@@ -105,7 +128,7 @@ int main ()
             dest[j] = 0.0;
         }
         
-        fprintf(stderr, "IGNORE: this output is here to prevent the compiler from deleting the copy operation. %ld\n", dummy); 
+        fprintf(stderr,"IGNORE: this output is here to prevent the compiler from deleting the copy operation. %f Test %d out of %d\n", dummy, testNum+1, numOfTests); 
         
         free(src);
         free(dest);
@@ -113,10 +136,10 @@ int main ()
     }
     
     printf("OMP Threads %d\n", maxNumThreads);
-    printf("Array size (Gib), Memcopy throughput, OMP throughput\n");
+    printf("Array size (GiB), Array size (MiB), Elapsed time Memcpy (s), Elapsed time OMP (s), Memcpy throughput (GiB/s), OMP throughput (GiB/s)\n");
     for ( int i =0 ; i < testNum; i++)
     {
-        printf("%.8f, %.4f, %.4f\n", arraySizesInGib[i], memcpyThroghputs[i], ompThroghputs[i] );
+        printf("%.12f, %.4f, %.4f\n", arraySizesInGib[i], memcpyThroghputs[i],  ompThroghputs[i] );
     }
 
 
