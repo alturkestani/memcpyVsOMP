@@ -136,7 +136,7 @@ int main ()
     }
     
     printf("OMP Threads %d\n", maxNumThreads);
-    printf("Array size (GiB), Array size (MiB), Elapsed time Memcpy (s), Elapsed time OMP (s), Memcpy throughput (GiB/s), OMP throughput (GiB/s)\n");
+    printf("Array size (GiB), Memcpy throughput (GiB/s), OMP throughput (GiB/s)\n");
     for ( int i =0 ; i < testNum; i++)
     {
         printf("%.12f, %.4f, %.4f\n", arraySizesInGib[i], memcpyThroghputs[i],  ompThroghputs[i] );
